@@ -13,7 +13,7 @@
 - 🤖 显示当前使用的模型
 - 🧠 显示上下文使用量和百分比
 - 💰 显示今日费用 / 已用费用 / 剩余费用
-- 📥📤 显示总��入/输出 token 用量
+- 📥📤 显示总输入/输出 token 用量
 
 ## 系统要求
 
@@ -51,7 +51,7 @@ API_ID = "your-api-id-here"  # <-- 替换成你的 API ID
 3. 从 URL 中复制 `apiId` 参数
    - 例如：`?apiId=8aae0f61-xxxx-xxxx-xxxx`
 
-## 终端推���
+## 终端推荐
 
 **推荐使用 iTerm2**，不建议使用 macOS 原生终端 (Terminal.app)。
 
