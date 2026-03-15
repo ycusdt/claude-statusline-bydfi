@@ -14,7 +14,7 @@ import sys
 # ============================================
 # CONFIGURATION - Edit this with your API ID
 # ============================================
-API_ID = "8aae0f61-2769-4ef4-81e3-a3379c5944f1"  # <-- Replace with your API ID
+API_ID = "YOUR_API_ID_HERE"  # <-- Replace with your API ID
 # ============================================
 
 # ANSI colors
