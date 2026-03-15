@@ -25,14 +25,6 @@ pip3 install cloudscraper --quiet 2>/dev/null || pip install cloudscraper --quie
     echo "⚠️  Could not install cloudscraper automatically. Please run: pip3 install cloudscraper"
 }
 
-# Check if ccusage is installed
-if ! command -v ccusage &> /dev/null; then
-    echo "⚠️  ccusage not found. Installing..."
-    npm install -g ccusage 2>/dev/null || {
-        echo "⚠️  Could not install ccusage. Please install manually: npm install -g ccusage"
-    }
-fi
-
 # Update Claude Code settings
 if [ -f "$SETTINGS_FILE" ]; then
     echo "⚙️  Updating Claude Code settings..."
@@ -81,4 +73,4 @@ echo "   2. Update the API_ID variable with your API ID"
 echo "   3. Restart Claude Code to see the new statusline"
 echo ""
 echo "📊 Expected output format:"
-echo "   🤖 Opus 4.6 | 🧠 19,236 (10%) | 💰 \$2.55 today / \$18.78 used / \$281.22 left | 📥 5.3M in / 📤 82K out"
+echo "   🤖 Opus 4.6 (1M context) | 🧠 26k █░░░░░░░13% | 💰 \$9.93 today : \$273.85 left | 📥 6.0M in : 120K out"
