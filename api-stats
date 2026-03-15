@@ -3,11 +3,12 @@
 Claude Code Statusline - API Stats
 Displays API usage statistics in Claude Code's statusline.
 
-Repository: https://github.com/Woaiyc121/claude-statusline-bydfi
+Repository: https://github.com/ycusdt/claude-statusline-bydfi
 """
 
 import cloudscraper
 import json
+import re
 import subprocess
 import sys
 
@@ -16,6 +17,29 @@ import sys
 # ============================================
 API_ID = "YOUR_API_ID_HERE"  # <-- Replace with your API ID
 # ============================================
+
+# ANSI colors
+GREEN = '\033[92m'
+YELLOW = '\033[93m'
+RED = '\033[91m'
+RESET = '\033[0m'
+
+def make_progress_bar(percentage):
+    """Create a colored progress bar"""
+    bar_length = 8
+    filled = min(int(percentage / 100 * bar_length), bar_length)
+    empty = bar_length - filled
+
+    # Choose color based on percentage
+    if percentage <= 50:
+        color = GREEN
+    elif percentage <= 80:
+        color = YELLOW
+    else:
+        color = RED
+
+    bar = color + '█' * filled + '░' * empty + RESET
+    return f"{bar}{int(percentage)}%"
 
 # Read stdin (Claude Code passes session info)
 stdin_data = sys.stdin.read()
@@ -66,16 +90,25 @@ except Exception:
 if ccusage_output:
     # Extract 🤖 model part (remove cost and rate)
     context_part = ccusage_output.split(' | 🔥')[0].split(' | 💰')[0]
-    # Extract 🧠 context part
+
+    # Extract 🧠 context part and convert to progress bar
     brain_part = ""
     if '🧠' in ccusage_output:
         for part in ccusage_output.split(' | '):
             if '🧠' in part:
-                brain_part = part.strip()
-                if brain_part != "🧠 N/A":
-                    break
+                # Extract percentage from the context part
+                # Format: "🧠 19,236 (10%)"
+                match = re.search(r'\((\d+)%\)', part)
+                if match:
+                    percentage = int(match.group(1))
+                    brain_part = f"🧠 {make_progress_bar(percentage)}"
+                elif 'N/A' in part:
+                    brain_part = ""  # Don't show brain part if N/A
+                else:
+                    brain_part = part.strip()
+                break
 
-    if brain_part and brain_part != "🧠 N/A":
+    if brain_part:
         print(f"{context_part} | {brain_part} | {api_part}")
     else:
         print(f"{context_part} | {api_part}")
