@@ -26,32 +26,40 @@ RESET = '\033[0m'
 # Claude context window size
 CONTEXT_WINDOW = 200000  # 200K for Opus 4
 
-def get_current_context_usage():
-    """Get the current context usage from the latest transcript file"""
+def get_current_context_usage(transcript_path=None):
+    """Get the current context usage from the transcript file
+
+    Args:
+        transcript_path: Path to the current session's transcript file (from stdin)
+    """
     try:
-        # Find the latest transcript file
-        claude_dir = os.path.expanduser("~/.claude/projects")
-        if not os.path.exists(claude_dir):
-            return None, None
+        # If transcript_path is provided, use it directly
+        if transcript_path and os.path.exists(transcript_path):
+            target_file = transcript_path
+        else:
+            # Fallback: Find the latest transcript file
+            claude_dir = os.path.expanduser("~/.claude/projects")
+            if not os.path.exists(claude_dir):
+                return None, None
 
-        # Find all jsonl files
-        jsonl_files = []
-        for root, dirs, files in os.walk(claude_dir):
-            for f in files:
-                if f.endswith('.jsonl'):
-                    filepath = os.path.join(root, f)
-                    mtime = os.path.getmtime(filepath)
-                    jsonl_files.append((mtime, filepath))
+            # Find all jsonl files
+            jsonl_files = []
+            for root, dirs, files in os.walk(claude_dir):
+                for f in files:
+                    if f.endswith('.jsonl'):
+                        filepath = os.path.join(root, f)
+                        mtime = os.path.getmtime(filepath)
+                        jsonl_files.append((mtime, filepath))
 
-        if not jsonl_files:
-            return None, None
+            if not jsonl_files:
+                return None, None
 
-        # Get the most recent file
-        jsonl_files.sort(reverse=True)
-        latest_file = jsonl_files[0][1]
+            # Get the most recent file
+            jsonl_files.sort(reverse=True)
+            target_file = jsonl_files[0][1]
 
         # Read the file and find the last assistant message with usage
-        with open(latest_file, 'r') as f:
+        with open(target_file, 'r') as f:
             lines = f.readlines()
 
         # Search from the end for the last assistant message with usage
@@ -95,6 +103,14 @@ def make_progress_bar(percentage):
 
 # Read stdin (Claude Code passes session info)
 stdin_data = sys.stdin.read()
+
+# Parse stdin to get transcript_path for current session
+transcript_path = None
+try:
+    stdin_json = json.loads(stdin_data)
+    transcript_path = stdin_json.get('transcript_path')
+except:
+    pass
 
 # Get ccusage context info (for model name)
 try:
@@ -144,11 +160,15 @@ if ccusage_output:
     context_part = ccusage_output.split(' | 🔥')[0].split(' | 💰')[0]
 
     # Get current context usage
-    current_context, percentage = get_current_context_usage()
+    current_context, percentage = get_current_context_usage(transcript_path)
 
     if current_context is not None and percentage is not None:
-        # Format: 🧠 50,000 ██████░░25%
-        brain_part = f"🧠 {current_context:,} {make_progress_bar(percentage)}"
+        # Format context: use K for thousands
+        if current_context >= 1000:
+            context_display = f"{current_context // 1000}k"
+        else:
+            context_display = str(current_context)
+        brain_part = f"🧠 {context_display} {make_progress_bar(percentage)}"
     else:
         brain_part = ""
 
