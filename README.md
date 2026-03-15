@@ -5,21 +5,21 @@
 ## 预览
 
 ```
-🤖 Opus 4.6 | 🧠 19,236 (10%) | 💰 $2.55 today / $18.78 used / $281.22 left | 📥 5.3M in / 📤 82K out
+🤖 Opus 4.6 (1M context) | 🧠 26k █░░░░░░░13% | 💰 $9.93 today : $273.85 left | 📥 6.0M in : 120K out
 ```
 
 ## 功能
 
-- 🤖 显示当前使用的模型
-- 🧠 显示上下文使用量和百分比
-- 💰 显示今日费用 / 已用费用 / 剩余费用
-- 📥📤 显示总输入/输出 token 用量
+- 🤖 **动态显示当前模型** - 自动识别模型名称和上下文窗口大小
+- 🧠 **每会话上下文跟踪** - 每个窗口显示自己会话的实际上下文使用量
+- 💰 **费用统计** - 今日费用 / 剩余费用
+- 📥📤 **Token 用量** - 总输入/输出 token 用量
+- 自动识别 1M/200K 等不同上下文窗口
 
 ## 系统要求
 
 - macOS / Linux
 - Python 3.6+
-- Node.js (用于 ccusage)
 - **推荐终端**: iTerm2 (不建议使用 macOS 原生终端)
 
 ## 快速安装
@@ -73,9 +73,9 @@ iTerm2 优势：
 
 | 字段 | 来源 | 说明 |
 |------|------|------|
-| 🤖 模型 | ccusage | 当前使用的模型 |
-| 🧠 上下文 | ccusage | 本地会话的上下文使用量 |
-| 💰 费用 | API | 今日费用 / 已用 / 剩余 |
+| 🤖 模型 | stdin | 当前使用的模型（含上下文大小） |
+| 🧠 上下文 | transcript | 本会话的实际上下文使用量 |
+| 💰 费用 | API | 今日费用 / 剩余费用 |
 | 📥📤 Tokens | API | 总输入/输出 token 用量 |
 
 ## 手动安装
@@ -93,13 +93,10 @@ chmod +x ~/.local/bin/api-stats
 # 3. 安装依赖
 pip3 install cloudscraper
 
-# 4. 安装 ccusage (如果没有)
-npm install -g ccusage
-
-# 5. 编辑脚本，填入你的 API_ID
+# 4. 编辑脚本，填入你的 API_ID
 nano ~/.local/bin/api-stats
 
-# 6. 配置 Claude Code
+# 5. 配置 Claude Code
 # 编辑 ~/.claude/settings.json，添加：
 # "statusLine": {
 #   "type": "command",
@@ -128,8 +125,9 @@ nano ~/.local/bin/api-stats
 - 这是正常的，新会话开始时没有上下文数据
 - 随着对话进行会自动显示
 
-**找不到 ccusage 命令**
-- 运行：`npm install -g ccusage`
+**上下文百分比不准确**
+- 确保重启了 Claude Code 窗口
+- 脚本需要从 stdin 获取正确的会话信息
 
 **状态栏不显示或显示错误**
 - 确认 Python 3 已安装：`python3 --version`
