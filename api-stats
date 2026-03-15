@@ -1,0 +1,83 @@
+#!/usr/bin/env python3
+"""
+Claude Code Statusline - API Stats
+Displays API usage statistics in Claude Code's statusline.
+
+Repository: https://github.com/Woaiyc121/claude-statusline-bydfi
+"""
+
+import cloudscraper
+import json
+import subprocess
+import sys
+
+# ============================================
+# CONFIGURATION - Edit this with your API ID
+# ============================================
+API_ID = "YOUR_API_ID_HERE"  # <-- Replace with your API ID
+# ============================================
+
+# Read stdin (Claude Code passes session info)
+stdin_data = sys.stdin.read()
+
+# Get ccusage context info (pass stdin to it)
+try:
+    ccusage_result = subprocess.run(
+        ['ccusage', 'statusline'],
+        input=stdin_data,
+        capture_output=True,
+        text=True,
+        timeout=5
+    )
+    ccusage_output = ccusage_result.stdout.strip()
+except Exception:
+    ccusage_output = ""
+
+# Get API stats
+scraper = cloudscraper.create_scraper()
+try:
+    resp = scraper.post(
+        'https://www.claudecodeserver.top/apiStats/api/user-stats',
+        json={"apiId": API_ID},
+        timeout=10
+    )
+
+    if resp.status_code == 200:
+        data = resp.json()
+        if data.get('success'):
+            limits = data['data']['limits']
+            usage = data['data']['usage']['total']
+
+            today_cost = round(limits['currentDailyCost'], 2)
+            used_cost = round(limits['currentTotalCost'], 2)
+            left_cost = round(limits['totalCostLimit'] - limits['currentTotalCost'], 2)
+            in_tokens = round(usage['inputTokens'] / 1000000, 1)
+            out_tokens = round(usage['outputTokens'] / 1000)
+
+            api_part = f"💰 ${today_cost} today / ${used_cost} used / ${left_cost} left | 📥 {in_tokens}M in / 📤 {out_tokens}K out"
+        else:
+            api_part = "💰 API Error"
+    else:
+        api_part = "💰 API Error"
+except Exception:
+    api_part = "💰 API N/A"
+
+# Extract model and context info from ccusage output
+if ccusage_output:
+    # Extract 🤖 model part (remove cost and rate)
+    context_part = ccusage_output.split(' | 🔥')[0].split(' | 💰')[0]
+    # Extract 🧠 context part
+    brain_part = ""
+    if '🧠' in ccusage_output:
+        for part in ccusage_output.split(' | '):
+            if '🧠' in part:
+                brain_part = part.strip()
+                if brain_part != "🧠 N/A":
+                    break
+
+    if brain_part and brain_part != "🧠 N/A":
+        print(f"{context_part} | {brain_part} | {api_part}")
+    else:
+        print(f"{context_part} | {api_part}")
+else:
+    print(f"🤖 Opus 4.6 | {api_part}")
