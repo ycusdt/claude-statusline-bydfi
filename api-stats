@@ -61,10 +61,11 @@ def get_current_context_usage():
                 if data.get('type') == 'assistant' and 'message' in data:
                     usage = data.get('message', {}).get('usage', {})
                     if usage.get('input_tokens') is not None:
-                        # Correct calculation: input + cache_create (NOT cache_read)
+                        # Full calculation: input + cache_create + cache_read
                         input_tokens = usage.get('input_tokens', 0)
                         cache_create = usage.get('cache_creation_input_tokens', 0)
-                        current_context = input_tokens + cache_create
+                        cache_read = usage.get('cache_read_input_tokens', 0)
+                        current_context = input_tokens + cache_create + cache_read
 
                         percentage = round(current_context / CONTEXT_WINDOW * 100)
                         return current_context, percentage
@@ -72,8 +73,7 @@ def get_current_context_usage():
                 continue
 
         return None, None
-    except Exception as e:
-        print(f"Debug: {e}", file=sys.stderr)
+    except Exception:
         return None, None
 
 def make_progress_bar(percentage):
@@ -99,7 +99,7 @@ stdin_data = sys.stdin.read()
 # Get ccusage context info (for model name)
 try:
     ccusage_result = subprocess.run(
-        ['/Users/yc/.npm-global/bin/ccusage', 'statusline'],
+        ['ccusage', 'statusline'],
         input=stdin_data,
         capture_output=True,
         text=True,
